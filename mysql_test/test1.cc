@@ -19,7 +19,59 @@ void insert(MYSQL* mysql)
 		return;
 	}
 }
+void del(MYSQL* mysql)
+{
+	const char* sql = "delete from Stu where id = 1;";
+	int ret = mysql_query(mysql, sql);
+	if(ret != 0)
+	{
+		cout << "delete: mysql_query error: " << mysql_error(mysql) << endl;
+		return;
+	}
+}
+void update(MYSQL* mysql)
+{
+	const char* sql = "update Stu set name='wangwu' where id = 2;";
+	int ret = mysql_query(mysql, sql);
+	if(ret != 0)
+	{
+		cout << "update: mysql_query error: " << mysql_error(mysql) << endl;
+		return;
+	}
+}
+void sel(MYSQL* mysql)
+{
+	const char* sql = "select * from Stu";
+	int ret = mysql_query(mysql, sql);
+	if(ret != 0)
+	{
+		cout << "select: mysql_query error: " << mysql_error(mysql) << endl;
+		return;
+	}
+	// 获取数据集
+	MYSQL_RES* res = mysql_store_result(mysql);
+	if(res == nullptr)
+	{
+		cout << "select: mysql_store_result error: " << mysql_error(mysql) << endl;
+		return;
+	}
+	// 获取行列数
+	int row = mysql_num_rows(res);
+	int col = mysql_num_fields(res);
 
+	for(int i = 0; i < row; ++i)
+	{
+		// 自动获取每行数据
+		MYSQL_ROW row_data = mysql_fetch_row(res);
+		for(int j = 0; j < col; ++j)
+			cout << row_data[j] << "\t";
+		cout << endl;
+	}
+
+	// 释放获取的数据集，不然会有内存泄漏
+	mysql_free_result(res);
+
+}
 
 int main()
 {
@@ -45,6 +97,10 @@ int main()
 	mysql_select_db(&mysql, DBNAME);
 
 	// insert(&mysql);
+	// del(&mysql);
+	// update(&mysql);
+	sel(&mysql);
+	// 关闭连接！！
 	mysql_close(&mysql);
 
 	return 0;
