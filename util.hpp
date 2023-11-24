@@ -11,15 +11,23 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-namespace util
+// 第三方库
+#include <jsoncpp/json/json.h>
+#include <jsoncpp/json/value.h>
+#include <jsoncpp/json/writer.h>
+#include <jsoncpp/json/reader.h>
+
+namespace web_video
 {
+	// 文件相关的方法类
 	class UtilFile
 	{
 	public:
-		File(const std::string filename = "")
+		UtilFile(const std::string filename = "")
 			:filename_(filename)
 		{}
 
+		// 判断当前路径下该文件是否存在
 		bool Exists() const
 		{
 			// access()函数判断文件是否存在的函数
@@ -28,6 +36,7 @@ namespace util
 			return true;
 		}
 
+		// 获取文件大小
 		size_t Size() const
 		{
 			if(!Exists()) return 0;
@@ -43,6 +52,7 @@ namespace util
 			return st.st_size;
 		}
 
+		// 从文件中读取数据
 		bool ReadFile(std::string* inbuffer) const
 		{
 			// 读取文件内容---ifstream
@@ -68,6 +78,7 @@ namespace util
 			return true;
 		}
 
+		// 向文件中写入数据
 		bool WriteFile(const std::string& outbuffer)
 		{
 			std::ofstream ofs;
@@ -89,6 +100,7 @@ namespace util
 			return true;
 		}
 
+		// 在当前路径下创建 filename_ 文件夹
 		bool CreateDir() const
 		{
 			if(Exists()) return true;
@@ -104,10 +116,39 @@ namespace util
 		std::string filename_;
 	};
 
-
+	// 进行序列化和反序列化的方法类
 	class UtilJson
 	{
 	public:
-
+		// 序列化：value对象 -> json串
+		static bool Serialize(const Json::Value& value, std::string* str)
+		{
+			Json::StreamWriterBuilder jsbuild;
+			std::unique_ptr<Json::StreamWriter> sw(jsbuild.newStreamWriter());
+			std::stringstream ss;
+			int ret = sw->write(value, &ss);
+			if(ret != 0)
+			{
+				// 序列化失败
+				std::cerr << "Serialize error!" << std::endl;
+				return false;
+			}
+			*str = ss.str();
+			return true;
+		}
+		// 反序列化：json串-> value对象
+		static bool UnSerialize(const std::string& str, Json::Value* value)
+		{
+			Json::CharReaderBuilder crb;
+			std::unique_ptr<Json::CharReader> cr(crb.newCharReader());
+			std::string err;
+			bool ret = cr->parse(str.c_str(), str.c_str() + str.size(), value, &err);
+			if(!ret)
+			{
+				std::cerr << "UnSerialize error!" << std::endl;
+				return false;
+			}
+			return true;
+		}
 	};
 }
