@@ -2,6 +2,19 @@
 
 using namespace std;
 using namespace httplib;
+void Multipart(const Request& req, Response& resp)
+{
+	if(req.has_file("file1") == false)
+	{
+		resp.status = 404;
+		return;
+	}
+	MultipartFormData file = req.get_file_value("file1");
+	cout << file.filename << endl;
+	cout << file.content << endl;
+	resp.status = 200;
+}
+
 int main()
 {
 	Server server;

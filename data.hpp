@@ -1,4 +1,5 @@
 #pragma once
+// 数据管理模块，主要是操作数据库进行增删改查
 
 #include <cstdio>
 #include <jsoncpp/json/value.h>
@@ -34,7 +35,7 @@ namespace web_video
 			return nullptr;
 		}
 
-		mysql_set_character_set(&mysql, CHARACTER);
+		mysql_set_character_set(mysql, CHARACTER);
 		mysql_select_db(mysql, DBNAME);
 		return mysql;
 	}
@@ -62,7 +63,6 @@ namespace web_video
 	public:
 		VideoTable()
 			:mysql_(nullptr)
-			, mutex_(mutex())
 		{
 			mysql_ = MysqlInit();
 			if(!mysql_) exit(1);
@@ -76,15 +76,15 @@ namespace web_video
 		// 插入一条视频信息
 		bool Insert(const Json::Value& video)
 		{
-			// 视频数据表的结构：id name info video image
+			// 视频数据表的结构：id name info videoURL imageURL
 			// 对 video 的数据进行校验 ...
 			// char sql[2048 + video["info"].asString().size()];
 			std::string sql;
 			sql.resize(2048 + video["info"].asString().size());
-			#define INSERT_SQL "insert into web_video values(null, '%s', %s', '%s', %s);"
-			std::sptintf(&str[0], INSERT_SQL, video["name"].asCString(),
-					video["info"].asCString(), video["video"].asCString(),
-					video["image"].asCString());
+			#define INSERT_SQL "insert into web_video values(null, '%s', '%s', '%s', '%s');"
+			std::sprintf(&sql[0], INSERT_SQL, video["name"].asCString(),
+					video["info"].asCString(), video["videoURL"].asCString(),
+					video["imageURL"].asCString());
 			return MysqlQuery(mysql_, sql);
 		}
 		// 更新一条视频信息
@@ -93,11 +93,11 @@ namespace web_video
 			// 校验...
 			std::string sql;
 			sql.resize(2048 + newVideo["info"].asString().size());
-			#define UPDATE_SQL "update web_video set name='%s', info='%s', video='%s', image='%s' where id='%d';"
-			std::sprintf(&str[0], UPDATE_SQL, newVideo["name"].asCstring(),
-					newVideo["info"].asCstring(), newVideo["video"].asCstring(),
-					newVideo["image"].asCstring(), videoID);
-			return MysqlQuery(mysql_, sql;)
+			#define UPDATE_SQL "update web_video set name='%s', info='%s', videoURL='%s', imageURL='%s' where id='%d';"
+			std::sprintf(&sql[0], UPDATE_SQL, newVideo["name"].asCString(),
+					newVideo["info"].asCString(), newVideo["videoURL"].asCString(),
+					newVideo["imageURL"].asCString(), videoID);
+			return MysqlQuery(mysql_, sql);
 		}
 		// 删除一条视频信息
 		bool Delete(const int videoID)
@@ -105,7 +105,7 @@ namespace web_video
 			std::string sql;
 			sql.resize(1024);
 			#define DELETE_SQL "delete from web_video where id='%d';"
-			std::sprintf(&s[0], DELETE_SQL, videoID);
+			std::sprintf(&sql[0], DELETE_SQL, videoID);
 			return MysqlQuery(mysql_, sql);
 		}
 		// 查询所有视频信息
@@ -113,14 +113,14 @@ namespace web_video
 		{
 			const char* sql = "select * from web_video;";
 			// 加锁...
-			mutex_.lock;
+			mutex_.lock();
 			bool ret = MysqlQuery(mysql_, sql);
 			if(!ret)
 			{
 				mutex_.unlock();
 				return false;
 			}
-			MYSQL* res = mysql_store_result(mysql_);
+			MYSQL_RES* res = mysql_store_result(mysql_);
 			if(res == nullptr)
 			{
 				std::cout << "mysql_store_result error: " << mysql_error(mysql_);
@@ -135,11 +135,11 @@ namespace web_video
 			{
 				MYSQL_ROW rowInfo = mysql_fetch_row(res);
 				// id 是 int 类型
-				video["id"] = stoi(rowInfo[0]);
+				video["id"] = std::stoi(rowInfo[0]);
 				video["name"] = rowInfo[1];
 				video["info"] = rowInfo[2];
-				video["video"] = rowInfo[3];
-				video["image"] = rowInfo[4];
+				video["videoURL"] = rowInfo[3];
+				video["imageURL"] = rowInfo[4];
 				videos->append(video);
 			}
 			// 释放资源
@@ -149,19 +149,19 @@ namespace web_video
 		// 查询指定ID的视频信息
 		bool SelectID(const int videoID, Json::Value* video)
 		{
-			#define SELECT_SQL "select * from web_video where id='%d';"
+			#define SELECTID_SQL "select * from web_video where id='%d';"
 			char sql[1024];
-			std::sprintf(sql, SELECT_SQL, videoID);
+			std::sprintf(sql, SELECTID_SQL, videoID);
 
 			// 加锁...
-			mutex_.lock;
+			mutex_.lock();
 			bool ret = MysqlQuery(mysql_, sql);
 			if(!ret)
 			{
 				mutex_.unlock();
 				return false;
 			}
-			MYSQL* res = mysql_store_result(mysql_);
+			MYSQL_RES* res = mysql_store_result(mysql_);
 			if(res == nullptr)
 			{
 				std::cout << "mysql_store_result error: " << mysql_error(mysql_);
@@ -174,7 +174,7 @@ namespace web_video
 			int row = mysql_num_rows(res);
 			if(row == 0)
 			{
-				std::cerr << "要查找的视频信息不存在！" << endl;
+				std::cerr << "要查找的视频信息不存在！" << std::endl;
 				mysql_free_result(res);
 				return false;
 			}
@@ -182,8 +182,8 @@ namespace web_video
 			(*video)["id"] = videoID;
 			(*video)["name"] = rowInfo[1];
 			(*video)["info"] = rowInfo[2];
-			(*video)["video"] = rowInfo[3];
-			(*video)["image"] = rowInfo[4];
+			(*video)["videoURL"] = rowInfo[3];
+			(*video)["imageURL"] = rowInfo[4];
 			mysql_free_result(res);
 			return true;
 		}
@@ -191,19 +191,19 @@ namespace web_video
 		bool SelectLike(const std::string& videoName, Json::Value* videos)
 		{
 			// %...%
-			#define SELECT_SQL "select * from web_video where name like '%%%s%%';"
+			#define SELECTLIKE_SQL "select * from web_video where name like '%%%s%%';"
 			char sql[1024];
-			std::sprintf(sql, SELECT_SQL, videoName);
+			std::sprintf(sql, SELECTLIKE_SQL, videoName.c_str());
 
 			// 加锁...
-			mutex_.lock;
+			mutex_.lock();
 			bool ret = MysqlQuery(mysql_, sql);
 			if(!ret)
 			{
 				mutex_.unlock();
 				return false;
 			}
-			MYSQL* res = mysql_store_result(mysql_);
+			MYSQL_RES* res = mysql_store_result(mysql_);
 			if(res == nullptr)
 			{
 				std::cout << "mysql_store_result error: " << mysql_error(mysql_);
@@ -218,11 +218,11 @@ namespace web_video
 			{
 				MYSQL_ROW rowInfo = mysql_fetch_row(res);
 				// id 是 int 类型
-				video["id"] = stoi(rowInfo[0]);
+				video["id"] = std::stoi(rowInfo[0]);
 				video["name"] = rowInfo[1];
 				video["info"] = rowInfo[2];
-				video["video"] = rowInfo[3];
-				video["image"] = rowInfo[4];
+				video["videoURL"] = rowInfo[3];
+				video["imageURL"] = rowInfo[4];
 				videos->append(video);
 			}
 			// 释放资源
