@@ -76,15 +76,15 @@ namespace web_video
 		// 插入一条视频信息
 		bool Insert(const Json::Value& video)
 		{
-			// 视频数据表的结构：id name info videoURL imageURL
+			// 视频数据表的结构：id name info video image
 			// 对 video 的数据进行校验 ...
 			// char sql[2048 + video["info"].asString().size()];
 			std::string sql;
 			sql.resize(2048 + video["info"].asString().size());
 			#define INSERT_SQL "insert into web_video values(null, '%s', '%s', '%s', '%s');"
 			std::sprintf(&sql[0], INSERT_SQL, video["name"].asCString(),
-					video["info"].asCString(), video["videoURL"].asCString(),
-					video["imageURL"].asCString());
+					video["info"].asCString(), video["video"].asCString(),
+					video["image"].asCString());
 			return MysqlQuery(mysql_, sql);
 		}
 		// 更新一条视频信息
@@ -93,10 +93,10 @@ namespace web_video
 			// 校验...
 			std::string sql;
 			sql.resize(2048 + newVideo["info"].asString().size());
-			#define UPDATE_SQL "update web_video set name='%s', info='%s', videoURL='%s', imageURL='%s' where id='%d';"
+			#define UPDATE_SQL "update web_video set name='%s', info='%s', video='%s', image='%s' where id='%d';"
 			std::sprintf(&sql[0], UPDATE_SQL, newVideo["name"].asCString(),
-					newVideo["info"].asCString(), newVideo["videoURL"].asCString(),
-					newVideo["imageURL"].asCString(), videoID);
+					newVideo["info"].asCString(), newVideo["video"].asCString(),
+					newVideo["image"].asCString(), videoID);
 			return MysqlQuery(mysql_, sql);
 		}
 		// 删除一条视频信息
@@ -138,8 +138,8 @@ namespace web_video
 				video["id"] = std::stoi(rowInfo[0]);
 				video["name"] = rowInfo[1];
 				video["info"] = rowInfo[2];
-				video["videoURL"] = rowInfo[3];
-				video["imageURL"] = rowInfo[4];
+				video["video"] = rowInfo[3];
+				video["image"] = rowInfo[4];
 				videos->append(video);
 			}
 			// 释放资源
@@ -182,8 +182,8 @@ namespace web_video
 			(*video)["id"] = videoID;
 			(*video)["name"] = rowInfo[1];
 			(*video)["info"] = rowInfo[2];
-			(*video)["videoURL"] = rowInfo[3];
-			(*video)["imageURL"] = rowInfo[4];
+			(*video)["video"] = rowInfo[3];
+			(*video)["image"] = rowInfo[4];
 			mysql_free_result(res);
 			return true;
 		}
@@ -221,8 +221,8 @@ namespace web_video
 				video["id"] = std::stoi(rowInfo[0]);
 				video["name"] = rowInfo[1];
 				video["info"] = rowInfo[2];
-				video["videoURL"] = rowInfo[3];
-				video["imageURL"] = rowInfo[4];
+				video["video"] = rowInfo[3];
+				video["image"] = rowInfo[4];
 				videos->append(video);
 			}
 			// 释放资源

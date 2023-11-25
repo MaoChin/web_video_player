@@ -9,23 +9,23 @@ using namespace web_video;
 
 void PrintfValue(Json::Value& val)
 {
-	// id name info videoURL imageURL
+	// id name info video image
 	for(int i = 0; i < val.size(); ++i)
 	{
 	  cout << "id: " << val[i]["id"].asInt() << endl;
 	  cout << "info: " << val[i]["info"].asString() << endl;
-	  cout << "videoURL: " << val[i]["videoURL"].asString() << endl;
-	  cout << "imageURL: " << val[i]["imageURL"].asString() << endl;
+	  cout << "video: " << val[i]["video"].asString() << endl;
+	  cout << "image: " << val[i]["image"].asString() << endl;
 		cout << endl;
 	}
 }
 void PrintOne(Json::Value& val)
 {
-	// id name info videoURL imageURL
+	// id name info video image
 	cout << "id: " << val["id"].asInt() << endl;
 	cout << "info: " << val["info"].asString() << endl;
-	cout << "videoURL: " << val["videoURL"].asString() << endl;
-	cout << "imageURL: " << val["imageURL"].asString() << endl;
+	cout << "video: " << val["video"].asString() << endl;
+	cout << "image: " << val["image"].asString() << endl;
 }
 
 void test_file()
@@ -73,20 +73,20 @@ void test_data()
 {
 	web_video::VideoTable videoT;
 	Json::Value value;
-	// 视频数据表：id name info videoURL imageURL
+	// 视频数据表：id name info video image
 	value["name"] = "xxx";
 	value["info"] = "this is a xxx video";
-	value["videoURL"] = "this is the video URL";
-	value["imageURL"] = "this is the imageURL";
+	value["video"] = "this is the video ";
+	value["image"] = "this is the image";
 
 	// 测试	insert
-	// videoT.Insert(value);
+	videoT.Insert(value);
 
 	Json::Value newvalue;
 	// newvalue["name"] = "111";
 	// newvalue["info"] = "this is a 111 video";
-	// newvalue["videoURL"] = "this is the video URL";
-	// newvalue["imageURL"] = "this is the imageURL";
+	// newvalue["video"] = "this is the video ";
+	// newvalue["image"] = "this is the image";
 	// 测试	update
 	// videoT.Update(1, newvalue);
 

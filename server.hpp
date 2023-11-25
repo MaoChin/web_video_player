@@ -85,7 +85,7 @@ namespace web_video
 
 			std::string videoName = nameMul.content;
 			std::string videoInfo = infoMul.content;
-			// 文件名：videoName+videoURL.filename
+			// 文件名：videoName+video.filename
 			std::string root = WWW_ROOT;
 			std::string videoPath = root + VIDEO_ROOT + videoName + videoMul.filename;
 			std::string imagePath = root + IMAGE_ROOT + videoName + imageMul.filename;
@@ -108,8 +108,8 @@ namespace web_video
 			Json::Value value;
 			value["name"] = videoName;
 			value["info"] = videoInfo;
-			value["videoURL"] = VIDEO_ROOT + videoName + videoMul.filename;
-			value["imageURL"] = IMAGE_ROOT + videoName + imageMul.filename;
+			value["video"] = VIDEO_ROOT + videoName + videoMul.filename;
+			value["image"] = IMAGE_ROOT + videoName + imageMul.filename;
 			if(videoT->Insert(value) == false)
 			{
 				resp.status = 500;
@@ -132,18 +132,11 @@ namespace web_video
 				return;
 			}
 			std::string root = WWW_ROOT;
-			std::string videoPath = root + value["videoURL"].asString();
-			std::string imagePath = root + value["imageURL"].asString();
-			if(remove(videoPath.c_str()) == -1)
-			{
-				std::cout << "remove: " << videoPath << " error!" << std::strerror(errno) << std::endl;
-				return;
-			}
-			if(remove(imagePath.c_str()) == -1)
-			{
-				std::cout << "remove: " << imagePath << " error!" << std::strerror(errno) << std::endl;
-				return;
-			}
+			std::string videoPath = root + value["video"].asString();
+			std::string imagePath = root + value["image"].asString();
+			remove(videoPath.c_str());
+			remove(imagePath.c_str());
+
 			if(videoT->Delete(videoID) == false)
 			{
 				resp.status = 500;
