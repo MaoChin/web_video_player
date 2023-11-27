@@ -117,6 +117,8 @@ namespace web_video
 				resp.set_header("Content-Type", "application/json");
 				return;
 			}
+			// 插入成功后重定向到首页
+			resp.set_redirect("/index.html", 303);
 		}
 		static void Delete(const httplib::Request& req, httplib::Response& resp)
 		{
